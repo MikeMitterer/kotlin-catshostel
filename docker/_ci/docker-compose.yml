@@ -1,0 +1,42 @@
+#------------------------------------------------------------------------------
+# Startet eine Dockerumgebung mit Testdaten in der DB
+#
+# Usage:
+#   docker-compose -f docker-compose.yml up
+#
+# Der Container wird zum Testen auch im WebApp.Base.Signer (Dart) als
+# Kopie verwendet
+#
+
+version: '3'
+
+services:
+  postgres:
+    # Auto-Restart
+    # restart: always
+
+    image: "${CI_CONTAINER_REGISTRY}/${DBNAME}-db-test"
+
+    # container_name: db-webappbase-test
+    # hostname: postgres
+
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - data:/var/lib/postgresql/data
+
+# Docker erstellt dieses Volume selbst
+# Es bekommt den Namen <project>_data und kann mit
+#
+# Mit docker-compose <-f docker-compose.yml> down --volume können die Volumes
+# gelöscht werden
+volumes:
+  # Kann mit 'docker volume rm webappbase_data' gelöscht werden
+  data:
+
+
+

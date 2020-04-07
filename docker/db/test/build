@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+#------------------------------------------------------------------------------
+# Generate Docker-Image
+#------------------------------------------------------------------------------
+
+# VARs die in .bashrc gesetzt sein müssen ~~ DEV_DOCKER | DEV_SEC | DEV_LOCAL ~~
+if [ -z ${DEV_DOCKER+x} ]; then echo "Var 'DEV_DOCKER' nicht gesetzt!"; exit 1; fi
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Abbruch bei Problemen (https://goo.gl/hEEJCj)
+#
+# Wenn ein Fehler nicht automatisch zu einem exit führen soll dann
+# kann 'command || true' verwendet werden
+#
+# Für die $1, $2 Abfragen kann 'CMDLINE=${1:-}' verwendet werden
+#
+# -e Any subsequent(*) commands which fail will cause the shell script to exit immediately
+# -o pipefail sets the exit code of a pipeline to that of the rightmost command
+# -u treat unset variables as an error and exit
+# -x print each command before executing it
+set -eou pipefail
+
+APPNAME="`basename $0`"
+SCRIPT=`realpath $0`
+SCRIPTPATH=`dirname $SCRIPT`
+
+#------------------------------------------------------------------------------
+# Set WORKSPACE
+#
+cd ${SCRIPTPATH}
+
+mkdir -p logs
+LOGFILE="logs/build-`date +%y%m%d`.log"
+
+DBNAME="catshostel"
+
+NAMESPACE="mikemitterer"
+NAME="${DBNAME}-db-test"
+VOLUME="/var/lib/postgresql/data"
+
+TAGFILE="TAG.properties"
+TAG="$(cat ${TAGFILE} | grep -i "tag=" | sed "s/tag=//g")"
+
+PORT="5432"
+
+AMAZON_REPO_URI="936985261795.dkr.ecr.eu-west-1.amazonaws.com"
+
+# IntelliJ-Module (Project-path)
+MODULE_PATH=$(realpath ../../..)
+
+#------------------------------------------------------------------------------
+# SQL-Basis (SQL-Files werden nach DBTARGET kopiert)
+DBSRC="${MODULE_PATH}/build/database/out"
+DBTARGET="config/docker-entrypoint-initdb.d"
+
+# DOCKER (wird benötigt damit docker aus Gradle heraus funktioniert!)
+export PATH="${PATH}:/usr/local/bin:~/bin"
+
+#------------------------------------------------------------------------------
+# Einbinden der globalen Build-Lib
+#   Hier sind z.B. Farben, generell globale VARs und Funktionen definiert
+#
+
+# LIB_DIR="${DEV_DOCKER}/_global/lib"
+BUILD_LIB="build.lib.sh"
+DOCKER_LIB="docker.lib.sh"
+
+. "${DEV_BASH}/${BUILD_LIB}"
+. "${DEV_BASH}/${DOCKER_LIB}"
+
+#------------------------------------------------------------------------------
+# Functions
+#
+
+prepareBuild() {
+    # Dir vorbereitent
+    rm -rf ${DBTARGET}
+    mkdir -p ${DBTARGET}
+
+    # Files kopieren und mit Nummerierung für die Reihenfolge des imports versehen
+    cp -a "${DBSRC}/${DBNAME}-postgres-schema.sql" "${DBTARGET}/${DBNAME}-postgres-1-schema.sql"
+    cp -a "${DBSRC}/${DBNAME}-postgres-data.sql" "${DBTARGET}/${DBNAME}-postgres-2-data.sql"
+
+#    INITSCRIPT="${DBTARGET}/init-${DBNAME}.sh"
+#    echo "#!/usr/bin/env bash" >> ${INITSCRIPT}
+#    echo "set -e" >> ${INITSCRIPT}
+#    echo '"${psql[@]}" <<- "EOSQL"' >> ${INITSCRIPT}
+#    echo "CREATE DATABASE IF NOT EXISTS ${DBNAME};" >> ${INITSCRIPT}
+#    echo "EOSQL" >> ${INITSCRIPT}
+}
+
+build() {
+    # prepareBuild
+
+    docker build -t "${NAMESPACE}/${NAME}:latest" . | tee ${LOGFILE} || exit 1
+    ID=$(tail -1 ${LOGFILE} | awk '{print $3;}')
+
+    # Lokal
+    docker tag "${ID}" "${NAMESPACE}/${NAME}:${TAG}"
+
+    # Amazon
+    docker tag "${NAMESPACE}/${NAME}:latest" "${AMAZON_REPO_URI}/${NAME}:latest"
+    docker tag "${NAMESPACE}/${NAME}:${TAG}" "${AMAZON_REPO_URI}/${NAME}:${TAG}"
+
+    showImages ${TAG} ${NAMESPACE} ${NAME} ${AMAZON_REPO_URI}
+}
+
+showSamples() {
+    echo
+    echo -e "Docker-Image:    ${C1}${NAMESPACE}/${NAME}${C0}"
+    echo -e "Volume:          ${C1}${VOLUME}${C0}"
+    echo
+    echo "Samples:"
+    echo -e "\tRuns DB-Server on port ${PORT}"
+    echo -e "\t     ${C1}docker run --name ${NAME} -e POSTGRES_PASSWORD=mysecretpassword \ "
+    echo -e "\t         -p ${PORT}:${PORT} -d ${NAMESPACE}/${NAME}${C0}"
+    echo -e "\t             -d deamon (im Hintergrund)"
+    echo
+
+    echo -e "\tCreate container"
+    echo -e "\t     ${C1}docker create --name ${NAME} -e POSTGRES_PASSWORD=mysecretpassword \ "
+    echo -e "\t         -p ${PORT}:54${PORT}32 ${NAMESPACE}/${NAME}${C0}"
+    echo
+
+
+    echo -e "\tInteractive mode"
+    echo -e "\t     ${C1}docker run --name ${NAME} --rm -ti -p ${PORT}:${PORT} ${NAMESPACE}/${NAME} bash${C0}"
+    echo
+
+    echo -e "\tAdd local volume"
+    echo -e "\t     ${C1}docker run --name ${NAME} --rm -v `pwd`:/data \ "
+    echo -e "\t             -ti -p 8080:8080 ${NAMESPACE}/${NAME} bash${C0}"
+    echo
+
+    echo -e "\t          -v source:target"
+    echo
+
+    echo
+}
+
+#------------------------------------------------------------------------------
+# Options
+#
+
+usage() {
+    echo
+    echo "Usage: `basename $0` [ options ]"
+    echo -e "\t-b | --build         Build docker image: ${NAMESPACE}/${NAME}"
+    echo -e "\t-i | --images        Show images for ${NAMESPACE}/${NAME}"
+    echo -e "\t-s | --samples       Show samples"
+    echo -e "\t-p | --push          Push image to Amazon"
+    echo -e "\t-l | --pull2local    Pull Amazon-Image to local host"
+    echo
+}
+
+
+CMDLINE=${1:-}
+case "${CMDLINE}" in
+
+    -b|--build)
+        build
+    ;;
+
+    -i|--images)
+        showImages ${TAG} ${NAMESPACE} ${NAME} ${AMAZON_REPO_URI}
+    ;;
+
+    -s|--samples)
+        showSamples
+    ;;
+
+    -p|--push)
+        pushImage2Amazon ${AMAZON_REPO_URI} ${NAME} ${TAG}
+    ;;
+
+    -l|--pull2local)
+        pullImageFromAmazon2LocalHost ${AMAZON_REPO_URI} ${NAME}
+    ;;
+
+    help|-help|--help|*)
+        usage
+    ;;
+
+esac
+
+#------------------------------------------------------------------------------
+# Alles OK...
+
+exit 0

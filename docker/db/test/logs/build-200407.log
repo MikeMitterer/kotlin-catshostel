@@ -1,0 +1,21 @@
+Sending build context to Docker daemon  14.34kB
+Step 1/6 : FROM mikemitterer/postgres
+ ---> 7ee00db3dd9b
+Step 2/6 : MAINTAINER Mike Mitterer <office@mikemitterer.at>
+ ---> Using cache
+ ---> 1dec3be0ab41
+Step 3/6 : ENV POSTGRES_DB catshostel
+ ---> Using cache
+ ---> 5116b8144eb7
+Step 4/6 : COPY config/docker-entrypoint-initdb.d/* /docker-entrypoint-initdb.d/
+ ---> 7204880c6794
+Step 5/6 : ENTRYPOINT ["/docker-entrypoint.sh"]
+ ---> Running in 9f17e985744a
+Removing intermediate container 9f17e985744a
+ ---> 3a42a6452b10
+Step 6/6 : CMD ["postgres"]
+ ---> Running in e99bea350a04
+Removing intermediate container e99bea350a04
+ ---> 86e0fac0d48f
+Successfully built 86e0fac0d48f
+Successfully tagged mikemitterer/catshostel-db-test:latest
