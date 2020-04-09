@@ -12,16 +12,24 @@ interface CatsMapper {
     @get:Options(useCache = true)
     val cats: List<Cat>
 
+    @Options(useCache = true)
+    @Select("SELECT * FROM cats WHERE id = #{id}")
+    fun cat(id: Number): Cat
+
     // Set keyProperty as the Java variable name and keyColumn as the column name in the database.
     @Options(flushCache = Options.FlushCachePolicy.TRUE, useGeneratedKeys = true, keyProperty = "cat.ID", keyColumn = "id")
     @Insert("INSERT INTO cats ( name, age ) VALUES (#{cat.name}, #{cat.age})")
-    fun insert(@Param("cat") cat: Cat?)
+    fun insert(@Param("cat") cat: Cat)
 
     @Options(flushCache = Options.FlushCachePolicy.TRUE)
     @Update("UPDATE cats SET name=#{cat.name},age=#{cat.age} WHERE id = #{cat.ID}")
-    fun update(@Param("cat") cat: Cat?)
+    fun update(@Param("cat") cat: Cat)
 
     @Options(flushCache = Options.FlushCachePolicy.TRUE)
     @Delete("DELETE FROM cats WHERE id = #{cat.ID}")
-    fun delete(@Param("cat") cat: Cat?)
+    fun delete(@Param("cat") cat: Cat)
+
+    @Options(flushCache = Options.FlushCachePolicy.TRUE)
+    @Delete("TRUNCATE cats")
+    fun deleteAll()
 }

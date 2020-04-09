@@ -2,18 +2,29 @@ package at.mikemitterer.catshostel.persitance
 
 import at.mikemitterer.catshostel.model.Cat
 import at.mikemitterer.catshostel.persitance.mapper.CatsMapper
+import org.apache.ibatis.annotations.*
 import org.apache.ibatis.session.SqlSessionFactory
 
-class CatDAO(
-        private val sessionFactory: SqlSessionFactory) : CatsMapper {
+/**
+ * Verwendet das selbe Interface wie CatsMapper - kann aber später einfach geändert werden
+ */
+interface CatDAO {
+    val numberOfCats: Long
+    val cats: List<Cat>
+    suspend fun cat(id: Number): Cat
+    suspend fun insert(cat: Cat)
+    suspend fun update(cat: Cat)
+    suspend fun delete(cat: Cat)
+    suspend fun deleteAll()
+}
+
+class CatDAOImpl(
+        private val sessionFactory: SqlSessionFactory) : CatDAO {
     
-    override fun insert(cat: Cat?) {
-        var session = sessionFactory.openSession()
-        try {
-            session.getMapper(CatsMapper::class.java).insert(cat)
-            session.commit()
-        } finally {
-            session.close()
+    override suspend fun insert(cat: Cat) {
+        sessionFactory.openSession().use {
+            it.getMapper(CatsMapper::class.java).insert(cat)
+            it.commit()
         }
     }
 
@@ -24,35 +35,37 @@ class CatDAO(
             }
     }
 
+    override suspend fun cat(id: Number): Cat {
+        sessionFactory.openSession().use { session ->
+            return session.getMapper(CatsMapper::class.java).cat(id)
+        }
+    }
+
     override val numberOfCats: Long
         get() {
-        var session = sessionFactory.openSession()
-        try {
+        sessionFactory.openSession().use { session ->
             return session.getMapper(CatsMapper::class.java).numberOfCats
-        } finally {
-            session.close()
         }
     }
 
-
-
-    override fun update(cat: Cat?) {
-        var session = sessionFactory.openSession()
-        try {
+    override suspend fun update(cat: Cat) {
+        sessionFactory.openSession().use { session ->
             session.getMapper(CatsMapper::class.java).update(cat)
             session.commit()
-        } finally {
-            session.close()
         }
     }
 
-    override fun delete(cat: Cat?) {
-        var session = sessionFactory.openSession()
-        try {
+    override suspend fun delete(cat: Cat) {
+        sessionFactory.openSession().use { session ->
             session.getMapper(CatsMapper::class.java).delete(cat)
             session.commit()
-        } finally {
-            session.close()
+        }
+    }
+
+    override suspend fun deleteAll() {
+        sessionFactory.openSession().use {
+            it.getMapper(CatsMapper::class.java).deleteAll()
+            it.commit()
         }
     }
 }

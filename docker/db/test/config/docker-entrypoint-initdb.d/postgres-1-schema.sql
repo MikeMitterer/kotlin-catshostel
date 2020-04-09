@@ -1,3 +1,5 @@
+-- noinspection SqlNoDataSourceInspectionForFile
+
 /*-------------------------------------------------------------------------------------------------
 Copyright: Mike Mitterer <office@mikemitterer.at>
     Generated for MySQL

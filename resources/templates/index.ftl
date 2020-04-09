@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="data" type="at.mikemitterer.IndexData" -->
+<#-- @ftlvariable name="data" type="at.mikemitterer.catshostel.IndexData" -->
 <html>
     <body>
         <ul>

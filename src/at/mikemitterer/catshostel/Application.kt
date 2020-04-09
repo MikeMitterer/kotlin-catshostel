@@ -1,5 +1,8 @@
-package at.mikemitterer
+package at.mikemitterer.catshostel
 
+import at.mikemitterer.catshostel.di.appModule
+import at.mikemitterer.catshostel.persitance.CatDAO
+import at.mikemitterer.catshostel.routes.catRouter
 import freemarker.cache.ClassTemplateLoader
 import io.ktor.application.*
 import io.ktor.auth.*
@@ -29,6 +32,8 @@ import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.websocket.webSocket
+import org.koin.ktor.ext.Koin
+import org.koin.ktor.ext.get
 import org.slf4j.event.Level
 import java.time.Duration
 
@@ -78,20 +83,32 @@ fun Application.module(testing: Boolean = false) {
         }
     }
 
+    install(Koin) {
+        // Use SLF4J Koin Logger at Level.INFO
+        // slf4jLogger()
+
+        // declare used modules
+        modules(appModule)
+    }
+
     val client = HttpClient(CIO) {
         install(Logging) {
             level = LogLevel.HEADERS
         }
     }
 
+    val dao = get<CatDAO>()
+
     routing {
         get("/") {
             application.log.debug("Servus vom Server")
             call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
+
+            // val dao = this@routing.get<CatDAO>()
         }
 
         get("/html-freemarker") {
-            call.respond(FreeMarkerContent("index.ftl", mapOf("data" to IndexData(listOf(1, 2, 3))), ""))
+            call.respond(FreeMarkerContent("index.ftl", mapOf("data" to IndexData(listOf(1, 2, 3, 4, 5, 6))), ""))
         }
 
         // Static feature. Try to access `/static/ktor_logo.svg`
@@ -119,6 +136,8 @@ fun Application.module(testing: Boolean = false) {
         get("/json/gson") {
             call.respond(mapOf("hello" to "world"))
         }
+
+        catRouter(get<CatDAO>())
     }
 }
 

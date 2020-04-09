@@ -1,7 +1,10 @@
 package at.mikemitterer.catshostel.model
 
 class Cat {
-    var ID = 0
+    /**
+     * Wird bei insert automatisch von iBatis gesetzt
+     */
+    var ID = 0L
 
     var name: String? = null
 
@@ -10,8 +13,8 @@ class Cat {
     /** Für iBatis  */
     constructor() {}
 
-    constructor(role: String, age: Int) {
-        this.name = role
+    constructor(name: String, age: Int) {
+        this.name = name
         this.age = age
     }
 }
