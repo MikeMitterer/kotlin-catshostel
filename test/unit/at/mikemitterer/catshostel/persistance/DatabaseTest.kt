@@ -3,36 +3,18 @@ package at.mikemitterer.catshostel.persistance
 import at.mikemitterer.catshostel.di.appModule
 import at.mikemitterer.catshostel.model.Cat
 import at.mikemitterer.catshostel.persitance.CatDAO
-import at.mikemitterer.catshostel.persitance.SessionFactory
 import at.mikemitterer.tdd.TestUtils.predictName
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
-import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeGreaterThan
-import org.apache.ibatis.io.Resources
-import org.apache.ibatis.session.SqlSessionFactory
-import org.apache.ibatis.session.SqlSessionFactoryBuilder
-import org.joda.time.LocalDateTime
 
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.format.ISODateTimeFormat
 import org.junit.*
-import org.koin.core.context.KoinContextHandler.get
 import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
 import org.koin.test.KoinTest
 import org.koin.test.get
-import java.io.InputStream
-import java.nio.charset.Charset
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.*
-import kotlin.test.BeforeTest
 import kotlin.test.assertTrue
-import java.util.Locale;
-import kotlin.math.roundToInt
 
 @ExperimentalCoroutinesApi
 class DatabaseTest: KoinTest {
@@ -54,6 +36,7 @@ class DatabaseTest: KoinTest {
         @AfterClass
         @JvmStatic fun teardown() {
             // clean up after this class, leave nothing dirty behind
+            stopKoin()
         }
     }
 
@@ -83,7 +66,7 @@ class DatabaseTest: KoinTest {
         val cat = Cat(predictName("Pepples"), 99)
         dao.insert(cat)
 
-        dao.cats.count().shouldBeGreaterThan(0)
+        dao.all.count().shouldBeGreaterThan(0)
     }
 
     @Test

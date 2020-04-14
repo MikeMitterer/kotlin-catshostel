@@ -34,6 +34,7 @@ import io.ktor.routing.routing
 import io.ktor.websocket.webSocket
 import org.koin.ktor.ext.Koin
 import org.koin.ktor.ext.get
+import org.koin.logger.slf4jLogger
 import org.slf4j.event.Level
 import java.time.Duration
 
@@ -85,7 +86,7 @@ fun Application.module(testing: Boolean = false) {
 
     install(Koin) {
         // Use SLF4J Koin Logger at Level.INFO
-        // slf4jLogger()
+        slf4jLogger()
 
         // declare used modules
         modules(appModule)

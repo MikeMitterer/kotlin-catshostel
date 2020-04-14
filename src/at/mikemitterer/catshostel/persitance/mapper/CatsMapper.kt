@@ -8,9 +8,9 @@ interface CatsMapper {
     @get:Options(useCache = true)
     val numberOfCats: Long
 
-    @get:Select("SELECT * from cats")
-    @get:Options(useCache = true)
-    val cats: List<Cat>
+    @Options(useCache = true)
+    @Select("SELECT * FROM cats ORDER BY name")
+    fun selectAll(): List<Cat>
 
     @Options(useCache = true)
     @Select("SELECT * FROM cats WHERE id = #{id}")
@@ -30,6 +30,6 @@ interface CatsMapper {
     fun delete(@Param("cat") cat: Cat)
 
     @Options(flushCache = Options.FlushCachePolicy.TRUE)
-    @Delete("TRUNCATE cats")
+    @Delete("DELETE FROM cats")
     fun deleteAll()
 }

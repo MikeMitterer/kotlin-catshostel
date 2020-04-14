@@ -47,6 +47,7 @@ dependencies {
 
     // DI --------------------------------------------------------------------------------------------------------------
     implementation "org.koin:koin-ktor:$koin_version"
+    implementation "org.koin:koin-logger-slf4j:$koin_version"
 
     // Datenbank -------------------------------------------------------------------------------------------------------
     implementation "org.mybatis:mybatis:$version_mybatis"

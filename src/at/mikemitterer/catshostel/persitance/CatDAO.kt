@@ -2,7 +2,6 @@ package at.mikemitterer.catshostel.persitance
 
 import at.mikemitterer.catshostel.model.Cat
 import at.mikemitterer.catshostel.persitance.mapper.CatsMapper
-import org.apache.ibatis.annotations.*
 import org.apache.ibatis.session.SqlSessionFactory
 
 /**
@@ -10,7 +9,7 @@ import org.apache.ibatis.session.SqlSessionFactory
  */
 interface CatDAO {
     val numberOfCats: Long
-    val cats: List<Cat>
+    val all: List<Cat>
     suspend fun cat(id: Number): Cat
     suspend fun insert(cat: Cat)
     suspend fun update(cat: Cat)
@@ -28,10 +27,10 @@ class CatDAOImpl(
         }
     }
 
-    override val cats: List<Cat>
+    override val all: List<Cat>
         get() {
             sessionFactory.openSession().use { session ->
-                return session.getMapper(CatsMapper::class.java).cats
+                return session.getMapper(CatsMapper::class.java).selectAll()
             }
     }
 

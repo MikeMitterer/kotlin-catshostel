@@ -1,6 +1,14 @@
 package at.mikemitterer.catshostel.model
 
+import com.google.gson.Gson
+
 class Cat {
+    companion object {
+        fun fromJson(json: String): Cat {
+            val gson = Gson()
+            return gson.fromJson(json, Cat::class.java)
+        }
+    }
     /**
      * Wird bei insert automatisch von iBatis gesetzt
      */
