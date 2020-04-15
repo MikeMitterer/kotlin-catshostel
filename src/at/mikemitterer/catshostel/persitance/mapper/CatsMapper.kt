@@ -14,7 +14,7 @@ interface CatsMapper {
 
     @Options(useCache = true)
     @Select("SELECT * FROM cats WHERE id = #{id}")
-    fun cat(id: Number): Cat
+    fun catByID(id: Number): Cat?
 
     // Set keyProperty as the Java variable name and keyColumn as the column name in the database.
     @Options(flushCache = Options.FlushCachePolicy.TRUE, useGeneratedKeys = true, keyProperty = "cat.ID", keyColumn = "id")
@@ -26,8 +26,8 @@ interface CatsMapper {
     fun update(@Param("cat") cat: Cat)
 
     @Options(flushCache = Options.FlushCachePolicy.TRUE)
-    @Delete("DELETE FROM cats WHERE id = #{cat.ID}")
-    fun delete(@Param("cat") cat: Cat)
+    @Delete("DELETE FROM cats WHERE id = #{id}")
+    fun delete(id: Number)
 
     @Options(flushCache = Options.FlushCachePolicy.TRUE)
     @Delete("DELETE FROM cats")

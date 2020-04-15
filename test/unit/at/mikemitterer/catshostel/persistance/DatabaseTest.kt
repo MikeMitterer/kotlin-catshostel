@@ -76,7 +76,7 @@ class DatabaseTest: KoinTest {
         val cat = addNewCat(dao)
         val numberBeforeDelete = dao.numberOfCats
 
-        dao.delete(cat)
+        dao.delete(cat.ID)
         assertTrue(dao.numberOfCats < numberBeforeDelete)
     }
 
@@ -90,7 +90,7 @@ class DatabaseTest: KoinTest {
         cat.age = cat.age + 1
         dao.update(cat)
 
-        val updatedCat = dao.cat(cat.ID)
+        val updatedCat = dao.catByID(cat.ID)
         updatedCat.age.shouldBeEqualTo(oldAge + 1)
     }
 }

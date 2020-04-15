@@ -20,6 +20,7 @@ object SessionFactory {
         val inputStream = Resources.getResourceAsStream(resource);
 
         val reader = Resources.getResourceAsReader(resource)
+        val environment = System.getenv("MM_DB_ENV") ?: "development"
         sqlSessionFactory = SqlSessionFactoryBuilder().build(reader, "development")
     }
 }

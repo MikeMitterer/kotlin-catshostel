@@ -10,10 +10,10 @@ import org.apache.ibatis.session.SqlSessionFactory
 interface CatDAO {
     val numberOfCats: Long
     val all: List<Cat>
-    suspend fun cat(id: Number): Cat
+    suspend fun catByID(id: Number): Cat
     suspend fun insert(cat: Cat)
     suspend fun update(cat: Cat)
-    suspend fun delete(cat: Cat)
+    suspend fun delete(id: Number)
     suspend fun deleteAll()
 }
 
@@ -34,9 +34,14 @@ class CatDAOImpl(
             }
     }
 
-    override suspend fun cat(id: Number): Cat {
+    override suspend fun catByID(id: Number): Cat {
         sessionFactory.openSession().use { session ->
-            return session.getMapper(CatsMapper::class.java).cat(id)
+            val cat = session.getMapper(CatsMapper::class.java).catByID(id)
+            if(null == cat) {
+                throw IllegalArgumentException("Could not find cat with ${id}!")
+            } else {
+                return cat
+            }
         }
     }
 
@@ -54,9 +59,9 @@ class CatDAOImpl(
         }
     }
 
-    override suspend fun delete(cat: Cat) {
+    override suspend fun delete(id: Number) {
         sessionFactory.openSession().use { session ->
-            session.getMapper(CatsMapper::class.java).delete(cat)
+            session.getMapper(CatsMapper::class.java).delete(id)
             session.commit()
         }
     }

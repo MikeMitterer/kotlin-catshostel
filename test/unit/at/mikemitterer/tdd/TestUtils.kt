@@ -13,6 +13,6 @@ object TestUtils {
         val now = LocalDateTime.now().toString("yyyy.MM.dd, HH:mm:ss")
         val rnd = (Math.random() * 1000).roundToInt()
 
-        return "${baseName}-${now}-${rnd}}"
+        return "${baseName}-${now}-${rnd}"
     }
 }

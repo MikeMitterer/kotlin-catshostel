@@ -12,3 +12,8 @@ Parallel in einem Consol-Fenster
     gradle -t installDist
     
 starten    
+
+## Application
+> [Fertige App im GH-Repo](https://github.com/AlexeySoshin/KotlinWebDevelopment/tree/chapter9-10)
+    
+    gradle run
