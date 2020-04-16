@@ -1,7 +1,7 @@
 package at.mikemitterer.catshostel.routes
 
 import at.mikemitterer.catshostel.model.Cat
-import at.mikemitterer.catshostel.module
+import at.mikemitterer.catshostel.main
 import at.mikemitterer.catshostel.persitance.CatDAO
 import at.mikemitterer.catshostel.utils.asJson
 import at.mikemitterer.tdd.TestUtils.predictName
@@ -59,7 +59,7 @@ class CatsTest : KoinTest {
     fun setupTest() = runBlockingTest {
         // val dao = inject<CatDAO>()
         // dao.value.deleteAll()
-        withTestApplication({ module(testing = true) }) {
+        withTestApplication({ main(testing = true) }) {
             handleRequest(HttpMethod.Delete, "/cats")
 
             val call = createCat("Streuner", 33)
@@ -91,7 +91,7 @@ class CatsTest : KoinTest {
 
     @Test
     fun testCreateCat() = runBlockingTest {
-        withTestApplication({ module(testing = true) }) {
+        withTestApplication({ main(testing = true) }) {
             val call = createCat(predictName("Pepples"), 22)
 
             call.response.status().`should be`(HttpStatusCode.Created)
@@ -104,7 +104,7 @@ class CatsTest : KoinTest {
 
     @Test
     fun testGetAllCats() = runBlockingTest {
-        withTestApplication({ module(testing = true) }) {
+        withTestApplication({ main(testing = true) }) {
             val call = handleRequest(HttpMethod.Get, "/cats")
             val gson = Gson()
 
@@ -115,7 +115,7 @@ class CatsTest : KoinTest {
 
     @Test
     fun testGetCatByID() = runBlockingTest {
-        withTestApplication({ module(testing = true) }) {
+        withTestApplication({ main(testing = true) }) {
             val uri = "/cats/${this@CatsTest.baseCat.ID}"
             val call = handleRequest(HttpMethod.Get, uri)
 
@@ -126,7 +126,7 @@ class CatsTest : KoinTest {
 
     @Test
     fun testUpdateCat() {
-        withTestApplication({ module(testing = true) }) {
+        withTestApplication({ main(testing = true) }) {
             val call = handleRequest(HttpMethod.Put, "/cats") {
                 val gson = Gson()
 
@@ -145,7 +145,7 @@ class CatsTest : KoinTest {
 
     @Test
     fun testDeleteCat() {
-        withTestApplication({ module(testing = true) }) {
+        withTestApplication({ main(testing = true) }) {
             val callCreate = createCat("Streuner.to.delete", 99)
 
             callCreate.response.status().`should be`(HttpStatusCode.Created)

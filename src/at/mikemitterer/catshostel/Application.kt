@@ -3,7 +3,10 @@ package at.mikemitterer.catshostel
 import at.mikemitterer.catshostel.di.appModule
 import at.mikemitterer.catshostel.model.Cat
 import at.mikemitterer.catshostel.persitance.CatDAO
+import at.mikemitterer.catshostel.routes.basicRouter
 import at.mikemitterer.catshostel.routes.catRouter
+import at.mikemitterer.webapp.events.RestStatus
+import com.google.common.base.Optional
 import com.google.gson.Gson
 import freemarker.cache.ClassTemplateLoader
 import io.ktor.application.*
@@ -12,16 +15,14 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.features.logging.LogLevel
 import io.ktor.client.features.logging.Logging
-import io.ktor.features.AutoHeadResponse
-import io.ktor.features.CORS
-import io.ktor.features.CallLogging
-import io.ktor.features.ContentNegotiation
+import io.ktor.features.*
 import io.ktor.freemarker.FreeMarker
 import io.ktor.freemarker.FreeMarkerContent
 import io.ktor.gson.gson
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.resources
 import io.ktor.http.content.static
@@ -44,7 +45,7 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
-fun Application.module(testing: Boolean = false) {
+fun Application.main(testing: Boolean = false) {
     install(FreeMarker) {
         templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
     }
@@ -105,6 +106,19 @@ fun Application.module(testing: Boolean = false) {
 
         // declare used modules
         modules(appModule)
+    }
+
+    // Weitere Infos: https://ktor.io/servers/features/status-pages.html#exceptions
+    install(StatusPages) {
+        exception<Throwable> { cause ->
+            val status = RestStatus(RestStatus.Data(
+                    HttpStatusCode.InternalServerError.value,
+                    cause.message, cause.message,
+                    Optional.of(cause),
+                    Optional.absent()
+            ))
+            call.respond(HttpStatusCode.InternalServerError, status.toJson())
+        }
     }
 
     val client = HttpClient(CIO) {
@@ -184,6 +198,7 @@ fun Application.module(testing: Boolean = false) {
         }
 
         catRouter(get<CatDAO>())
+        basicRouter()
     }
 }
 
