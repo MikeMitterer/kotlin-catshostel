@@ -1,8 +1,10 @@
 package at.mikemitterer.catshostel
 
 import at.mikemitterer.catshostel.di.appModule
+import at.mikemitterer.catshostel.model.Cat
 import at.mikemitterer.catshostel.persitance.CatDAO
 import at.mikemitterer.catshostel.routes.catRouter
+import com.google.gson.Gson
 import freemarker.cache.ClassTemplateLoader
 import io.ktor.application.*
 import io.ktor.auth.*
@@ -20,10 +22,7 @@ import io.ktor.gson.gson
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
-import io.ktor.http.cio.websocket.Frame
-import io.ktor.http.cio.websocket.pingPeriod
-import io.ktor.http.cio.websocket.readText
-import io.ktor.http.cio.websocket.timeout
+import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.resources
 import io.ktor.http.content.static
 import io.ktor.request.path
@@ -31,7 +30,10 @@ import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
+import io.ktor.sessions.*
+import io.ktor.util.generateNonce
 import io.ktor.websocket.webSocket
+import kotlinx.coroutines.channels.consumeEach
 import org.koin.ktor.ext.Koin
 import org.koin.ktor.ext.get
 import org.koin.logger.slf4jLogger
@@ -72,6 +74,18 @@ fun Application.module(testing: Boolean = false) {
         masking = false
     }
 
+    // This enables the use of sessions to keep information between requests/refreshes of the browser.
+    install(Sessions) {
+        cookie<ChatSession>("SESSION")
+    }
+
+    // This adds an interceptor that will create a specific session in each request if no session is available already.
+    intercept(ApplicationCallPipeline.Features) {
+        if (call.sessions.get<ChatSession>() == null) {
+            call.sessions.set(ChatSession(generateNonce()))
+        }
+    }
+
     install(Authentication) {
         basic("myBasicAuth") {
             realm = "Ktor Server"
@@ -99,7 +113,7 @@ fun Application.module(testing: Boolean = false) {
         }
     }
 
-    val dao = get<CatDAO>()
+    val server = ChatServer()
 
     routing {
         get("/") {
@@ -118,13 +132,39 @@ fun Application.module(testing: Boolean = false) {
             resources("static")
         }
 
-        webSocket("/myws/echo") {
-            send(Frame.Text("Hi from server"))
-            while (true) {
-                val frame = incoming.receive()
-                if (frame is Frame.Text) {
-                    send(Frame.Text("Client said: " + frame.readText()))
+        webSocket("/ws") {
+            // First of all we get the session.
+            val session = call.sessions.get<ChatSession>()
+
+            // We check that we actually have a session. We should always have one,
+            // since we have defined an interceptor before to set one.
+            if (session == null) {
+                close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "No session"))
+                return@webSocket
+            }
+
+            // We notify that a member joined by calling the server handler [memberJoin]
+            // This allows to associate the session id to a specific WebSocket connection.
+            server.memberJoin(session.id, this)
+
+            try {
+                // We starts receiving messages (frames).
+                // Since this is a coroutine. This coroutine is suspended until receiving frames.
+                // Once the connection is closed, this consumeEach will finish and the code will continue.
+                incoming.consumeEach { frame ->
+                    // Frames can be [Text], [Binary], [Ping], [Pong], [Close].
+                    // We are only interested in textual messages, so we filter it.
+                    if (frame is Frame.Text) {
+                        // Now it is time to process the text sent from the user.
+                        // At this point we have context about this connection, the session, the text and the server.
+                        // So we have everything we need.
+                        server.receivedMessage(session.id, frame.readText())
+                    }
                 }
+            } finally {
+                // Either if there was an error, of it the connection was closed gracefully.
+                // We notify the server that the member left.
+                server.memberLeft(session.id, this)
             }
         }
 
@@ -137,6 +177,10 @@ fun Application.module(testing: Boolean = false) {
 
         get("/json/gson") {
             call.respond(mapOf("hello" to "world"))
+
+            val gson = Gson()
+            val cat = Cat("Pepples27", 88)
+            server.message("Server", gson.toJson(cat))
         }
 
         catRouter(get<CatDAO>())
