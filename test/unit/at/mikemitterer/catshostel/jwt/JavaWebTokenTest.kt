@@ -48,7 +48,7 @@ class JavaWebTokenTest {
     private val privateKeyFile = File("./resources/rsakeys/jwt.pkcs8.pem")
 
     @Test
-    fun testDummy() = runBlocking {
+    fun testKeyCloak() = runBlocking {
         val realm = "demo"
         val authHost = "http://localhost:9000"
         val issuer = "${authHost}/auth/realms/${realm}"

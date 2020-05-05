@@ -1,23 +1,16 @@
-# CatsHostel (Udemy - Kurs)
+# CatsHostel 
 > [Udemy](https://www.udemy.com/course/web-development-with-kotlin/)  
 > [GH Repo](https://github.com/AlexeySoshin/KotlinWebDevelopment)  
 > [MyBatis](https://blog.mybatis.org/)    
 
-## Auto-Refresh
-> [KTor - AutoReload](https://ktor.io/servers/autoreload.html)
+This example is based on the according [Udemy](https://www.udemy.com/course/web-development-with-kotlin/) course.
 
-Die ganze Geschichte muss unter **Java > 8** laufen!
-
-Parallel in einem Console-Fenster
-
-    # Consol-Windows 1
-    gradle -t installDist
-    
-    # Consol-Windows 2
-    gradle run
-    
-starten    
-
+I added some other features:
+  
+   - iBatis (works with SQLite or Postgres-DB)
+   - JWT support
+   - [KTor]()
+     
 ## Database
 
     # cd to DB-Directory
@@ -48,4 +41,18 @@ Set your working dir to $MODULE_WORKING_DIR$
     # Erstellt das JAR
     gradle shadowJar
     
+## Auto-Refresh
+> [KTor - AutoReload](https://ktor.io/servers/autoreload.html)
+
+Die ganze Geschichte muss unter **Java > 8** laufen!
+
+Parallel in einem Console-Fenster
+
+    # Consol-Windows 1
+    gradle -t installDist
+    
+    # Consol-Windows 2
+    gradle run
+    
+starten    
     
