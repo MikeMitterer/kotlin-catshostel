@@ -9,7 +9,8 @@ I added some other features:
   
    - iBatis (works with SQLite or Postgres-DB)
    - JWT support
-   - [KTor]()
+   - [KTor](https://github.com/MikeMitterer/kotlin-catshostel/blob/master/test/unit/at/mikemitterer/catshostel/jwt/JavaWebTokenTest.kt#L51)
+   - AutoRefresh (see below)
      
 ## Database
 
@@ -17,7 +18,7 @@ I added some other features:
     cd resources/db
     
     # Import schema (Postgres works just fine here)
-    sqlite catshostel.db < ../../docker/db/test/config/docker-entrypoint-initdb.d/postgres-1-schema.sql
+    sqlite catshostel.db < sqlite-1-schema.sql
 
 Set your working dir to $MODULE_WORKING_DIR$
 
@@ -44,9 +45,7 @@ Set your working dir to $MODULE_WORKING_DIR$
 ## Auto-Refresh
 > [KTor - AutoReload](https://ktor.io/servers/autoreload.html)
 
-Die ganze Geschichte muss unter **Java > 8** laufen!
-
-Parallel in einem Console-Fenster
+You need **Java > 8** for this
 
     # Consol-Windows 1
     gradle -t installDist
@@ -54,5 +53,13 @@ Parallel in einem Console-Fenster
     # Consol-Windows 2
     gradle run
     
-starten    
-    
+[Open REST-Server](http://0.0.0.0:8080/)    
+
+## KeyCloak
+
+To setup a user with KeyCloak follow one of these tutorials:
+
+   - [A Quick Guide to Using Keycloak](https://www.baeldung.com/spring-boot-keycloak)
+   - [API login and JWT token generation using Keycloak](https://developers.redhat.com/blog/2020/01/29/api-login-and-jwt-token-generation-using-keycloak/)
+   - [Getting started with Keycloak](https://codergists.com/redhat/keycloak/security/authentication/2020/01/07/getting-started-with-keycloak-on-rhel8.html)
+       

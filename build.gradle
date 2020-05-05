@@ -16,19 +16,21 @@ apply plugin: 'application'
 group 'at.mikemitterer'
 version '0.0.1'
 
-jar {
-    manifest {
-        attributes 'Main-Class': 'at.mikemitterer.catshostel.ApplicationKt'
-    }
-}
-
 mainClassName = "io.ktor.server.netty.EngineMain"
+// mainClassName = 'at.mikemitterer.catshostel.ApplicationKt'
 
-// This task will generate your fat JAR and put it in the ./build/libs/ directory
-shadowJar {
+jar {
     manifest {
         attributes 'Main-Class': mainClassName
     }
+}
+
+
+// This task will generate your fat JAR and put it in the ./build/libs/ directory
+shadowJar {
+//    manifest {
+//        attributes 'Main-Class': mainClassName
+//    }
 }
 
 sourceSets {
@@ -85,6 +87,8 @@ dependencies {
 
     // Sonstiges -------------------------------------------------------------------------------------------------------
     implementation "joda-time:joda-time:$joda_version"
+    implementation "org.apache.commons:commons-lang3:$commons_lang_version"
+
     // Test ============================================================================================================
     testImplementation "junit:junit:$version_junit"
     testImplementation "io.ktor:ktor-server-tests:$ktor_version"
@@ -96,4 +100,32 @@ dependencies {
     testCompile group: 'org.apache.httpcomponents', 	name: 'httpmime', 	            version: version_commonsMime
     testCompile group: 'org.apache.httpcomponents',     name: 'httpclient', 			version: version_commonsHttpClient
 
+}
+
+//-------------------------------------------------------------------------------------------------
+// webapp mit fatJar wird erstellt
+//      create a single Jar with all dependencies
+//
+task fatJar(
+        group: 'CatsHostel',
+        description: "Create 'Fat-Jar' with Manifest",
+        type: Jar, dependsOn: jar) {
+
+    manifest {
+        attributes(
+                "Manifest-Version": "1.0",
+                "Implementation-Title": "CatsHostel",
+                "Implementation-Version": archiveVersion,
+                "Created-By": "Mike Mitterer",
+                "Main-Class": mainClassName,
+        )
+    }
+    baseName = project.name + '-all'
+    baseName = baseName.toLowerCase()
+    from {
+        configurations.compile.collect
+                { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    with jar
 }

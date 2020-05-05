@@ -46,6 +46,7 @@ import io.ktor.sessions.*
 import io.ktor.util.generateNonce
 import io.ktor.websocket.webSocket
 import kotlinx.coroutines.channels.consumeEach
+import org.apache.commons.lang3.exception.ExceptionUtils
 import org.joda.time.DateTime
 import org.koin.ktor.ext.Koin
 import org.koin.ktor.ext.get
@@ -54,6 +55,23 @@ import org.slf4j.event.Level
 import java.time.Duration
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
+
+// fun main(args: Array<String>) {
+//     embeddedServer(Netty, commandLineEnvironment(args)).start()
+// }
+
+// fun main(args: Array<String>) {
+//     // For AWS ElasticBeanstalk, use port 5000
+//     val server = embeddedServer (Netty, 8080) {
+// //    val server = embeddedServer (Netty, 5000) {
+//         routing {
+//             get("/") {
+//                 call.respondText("Greetings, Earthlings! Kotlin, Ktor and Gradle salute you now.", ContentType.Text.Html)
+//             }
+//         }
+//     }
+//     server.start(wait = true)
+// }
 
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
@@ -162,14 +180,12 @@ fun Application.main(testing: Boolean = false) {
     // Weitere Infos: https://ktor.io/servers/features/status-pages.html#exceptions
     install(StatusPages) {
         exception<Throwable> { cause ->
-            // val status = RestStatus(RestStatus.Data(
-            //         HttpStatusCode.InternalServerError.value,
-            //         cause.message ?: "no message!", cause.message ?: "no reason!",
-            //         Optional.of(cause),
-            //         Optional.absent()
-            // ))
             val gson = Gson()
-            call.respond(HttpStatusCode.InternalServerError, gson.toJson(cause)) // status.toJson()
+            val message = mapOf<String, Any>(
+                    "message" to (cause.message ?: "no message!"),
+                    "stacktrace" to ExceptionUtils.getRootCauseStackTrace(cause).map { it.replace("\t", " - ") }
+            )
+            call.respond(HttpStatusCode.InternalServerError, gson.toJson(message)) // status.toJson()
         }
     }
 
