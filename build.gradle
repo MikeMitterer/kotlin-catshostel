@@ -73,8 +73,8 @@ dependencies {
     implementation "org.koin:koin-logger-slf4j:$koin_version"
 
     // Datenbank -------------------------------------------------------------------------------------------------------
-    implementation "org.mybatis:mybatis:$version_mybatis"
-    implementation "org.postgresql:postgresql:$version_postgres"
+    implementation "org.mybatis:mybatis:$mybatis_version"
+    implementation "org.postgresql:postgresql:$postgres_version"
     implementation "org.xerial:sqlite-jdbc:$sqlite_version"
 
     // Eigene libs -----------------------------------------------------------------------------------------------------
@@ -90,15 +90,15 @@ dependencies {
     implementation "org.apache.commons:commons-lang3:$commons_lang_version"
 
     // Test ============================================================================================================
-    testImplementation "junit:junit:$version_junit"
+    testImplementation "junit:junit:$junit_version"
     testImplementation "io.ktor:ktor-server-tests:$ktor_version"
     testImplementation "org.amshove.kluent:kluent:$kluent_version"
     testImplementation "org.koin:koin-test:$koin_version"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_test_version"
 
     // zum Testen wird auch noch der httpclient verwendet.
-    testCompile group: 'org.apache.httpcomponents', 	name: 'httpmime', 	            version: version_commonsMime
-    testCompile group: 'org.apache.httpcomponents',     name: 'httpclient', 			version: version_commonsHttpClient
+    // testCompile group: 'org.apache.httpcomponents', 	name: 'httpmime', 	            version: version_commonsMime
+    // testCompile group: 'org.apache.httpcomponents',     name: 'httpclient', 			version: version_commonsHttpClient
 
 }
 

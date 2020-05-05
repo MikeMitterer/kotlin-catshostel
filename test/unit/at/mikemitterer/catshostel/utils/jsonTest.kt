@@ -3,7 +3,6 @@ package at.mikemitterer.catshostel.utils
 
 import org.junit.Test
 import org.slf4j.LoggerFactory
-import kotlin.test.assertEquals
 
 /**
  *
@@ -14,7 +13,7 @@ class JsonTest {
     private val logger = LoggerFactory.getLogger(JsonTest::class.java.name)
 
     @Test
-    fun testDummy() {
+    fun testJsonArray() {
         val list = arrayOf("Hallo", "Dies", "ist", "ein", "Test")
         logger.info(list.asJson())
         // print(list.asJson())
