@@ -1,24 +1,22 @@
 package at.mikemitterer.catshostel.routes
 
-import at.mikemitterer.catshostel.model.Cat
 import at.mikemitterer.catshostel.main
-import at.mikemitterer.catshostel.persitance.CatDAO
-import at.mikemitterer.catshostel.utils.asJson
+import at.mikemitterer.catshostel.model.Cat
+import at.mikemitterer.catshostel.persistence.CatDAO
 import at.mikemitterer.tdd.TestUtils.predictName
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
-import org.amshove.kluent.*
+import org.amshove.kluent.`should be`
+import org.amshove.kluent.shouldBe
+import org.amshove.kluent.shouldBeEqualTo
+import org.amshove.kluent.shouldNotBeNull
 import org.junit.*
 import org.koin.test.KoinTest
 import org.koin.test.get
 import org.slf4j.LoggerFactory
-import java.lang.reflect.Type
-import java.util.*
-import kotlin.collections.ArrayList
 
 
 /**

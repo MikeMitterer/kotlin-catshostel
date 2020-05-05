@@ -1,14 +1,12 @@
-package at.mikemitterer.catshostel.persistance
+package at.mikemitterer.catshostel.persistence
 
 import at.mikemitterer.catshostel.di.appModule
 import at.mikemitterer.catshostel.model.Cat
-import at.mikemitterer.catshostel.persitance.CatDAO
 import at.mikemitterer.tdd.TestUtils.predictName
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeGreaterThan
-
 import org.junit.*
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
@@ -56,7 +54,7 @@ class DatabaseTest: KoinTest {
         val cat = addNewCat(dao)
 
         val newNumber = dao.numberOfCats
-        newNumber.shouldBeGreaterThan(number)
+        newNumber.shouldBeEqualTo(number + 1)
     }
 
     @Test

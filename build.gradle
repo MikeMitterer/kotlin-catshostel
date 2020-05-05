@@ -23,13 +23,14 @@ jar {
 }
 
 mainClassName = "io.ktor.server.netty.EngineMain"
-// This task will generate your fat JAR and put it in the ./build/libs/ directory
 
+// This task will generate your fat JAR and put it in the ./build/libs/ directory
 shadowJar {
     manifest {
         attributes 'Main-Class': mainClassName
     }
 }
+
 sourceSets {
     main.kotlin.srcDirs = main.java.srcDirs = ['src']
     test.kotlin.srcDirs = test.java.srcDirs = ['test/unit']
@@ -60,6 +61,11 @@ dependencies {
     implementation "io.ktor:ktor-client-websockets:$ktor_version"
     implementation "io.ktor:ktor-client-logging-jvm:$ktor_version"
 
+    implementation "io.ktor:ktor-client-apache:$ktor_version"
+    implementation("io.ktor:ktor-client-auth:$ktor_version")
+    implementation("io.ktor:ktor-client-auth-jvm:$ktor_version")
+    implementation "io.ktor:ktor-locations:$ktor_version"
+    
     // DI --------------------------------------------------------------------------------------------------------------
     implementation "org.koin:koin-ktor:$koin_version"
     implementation "org.koin:koin-logger-slf4j:$koin_version"
@@ -67,13 +73,18 @@ dependencies {
     // Datenbank -------------------------------------------------------------------------------------------------------
     implementation "org.mybatis:mybatis:$version_mybatis"
     implementation "org.postgresql:postgresql:$version_postgres"
+    implementation "org.xerial:sqlite-jdbc:$sqlite_version"
 
     // Eigene libs -----------------------------------------------------------------------------------------------------
-    implementation "at.mikemitterer:webapp.communication:$version_webAppCommunication"
+    // implementation "at.mikemitterer:webapp.communication:$version_webAppCommunication"
+
+    // JWT -------------------------------------------------------------------------------------------------------------
+    implementation "io.jsonwebtoken:jjwt-api:$jwt_version"
+    implementation "io.jsonwebtoken:jjwt-impl:$jwt_version"
+    implementation "io.jsonwebtoken:jjwt-gson:$jwt_version"
 
     // Sonstiges -------------------------------------------------------------------------------------------------------
-    implementation "joda-time:joda-time:$version_jodaTime"
-
+    implementation "joda-time:joda-time:$joda_version"
     // Test ============================================================================================================
     testImplementation "junit:junit:$version_junit"
     testImplementation "io.ktor:ktor-server-tests:$ktor_version"

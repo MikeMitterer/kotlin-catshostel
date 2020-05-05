@@ -1,7 +1,7 @@
 package at.mikemitterer.catshostel.routes
 
 import at.mikemitterer.catshostel.model.Cat
-import at.mikemitterer.catshostel.persitance.CatDAO
+import at.mikemitterer.catshostel.persistence.CatDAO
 import com.google.gson.Gson
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode

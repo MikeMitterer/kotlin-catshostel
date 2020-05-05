@@ -1,4 +1,4 @@
-package at.mikemitterer.catshostel.persitance
+package at.mikemitterer.catshostel.persistence
 
 import org.apache.ibatis.io.Resources
 import org.apache.ibatis.session.SqlSessionFactory
@@ -21,6 +21,6 @@ object SessionFactory {
 
         val reader = Resources.getResourceAsReader(resource)
         val environment = System.getenv("MM_DB_ENV") ?: "development"
-        sqlSessionFactory = SqlSessionFactoryBuilder().build(reader, "development")
+        sqlSessionFactory = SqlSessionFactoryBuilder().build(reader /*, "development"*/)
     }
 }

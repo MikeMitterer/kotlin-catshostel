@@ -1,9 +1,8 @@
 package at.mikemitterer.catshostel.di
 
-import at.mikemitterer.catshostel.persitance.CatDAO
-import at.mikemitterer.catshostel.persitance.CatDAOImpl
-import at.mikemitterer.catshostel.persitance.SessionFactory
-import org.apache.ibatis.session.SqlSessionFactory
+import at.mikemitterer.catshostel.persistence.CatDAO
+import at.mikemitterer.catshostel.persistence.CatDAOImpl
+import at.mikemitterer.catshostel.persistence.SessionFactory
 import org.koin.dsl.module
 
 /**

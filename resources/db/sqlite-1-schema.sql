@@ -17,9 +17,9 @@ DROP TABLE IF EXISTS cats;
 
 -- Shiro - tables ---------------------------------------------------------------------------------
 CREATE TABLE cats (
-  ID SERIAL PRIMARY KEY,
-	name       	VARCHAR(255) 	not null /*REFERENCES userroles(username) ON DELETE CASCADE*/,
-	age       	INTEGER	        not null
+    ID      INTEGER PRIMARY KEY AUTOINCREMENT,
+	name    VARCHAR(255) 	not null /*REFERENCES userroles(username) ON DELETE CASCADE*/,
+	age     INTEGER	        not null
 );
 DROP INDEX IF EXISTS idx_name ;
 CREATE UNIQUE INDEX idx_name on cats(name);

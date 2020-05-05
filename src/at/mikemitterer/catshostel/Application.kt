@@ -1,18 +1,25 @@
 package at.mikemitterer.catshostel
 
+import at.mikemitterer.catshostel.auth.createJWT
+import at.mikemitterer.catshostel.auth.getPublicKey
+import at.mikemitterer.catshostel.auth.stripPEMMarker
 import at.mikemitterer.catshostel.di.appModule
 import at.mikemitterer.catshostel.model.Cat
-import at.mikemitterer.catshostel.persitance.CatDAO
+import at.mikemitterer.catshostel.persistence.CatDAO
 import at.mikemitterer.catshostel.routes.basicRouter
 import at.mikemitterer.catshostel.routes.catRouter
-import at.mikemitterer.webapp.events.RestStatus
-import com.google.common.base.Optional
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.interfaces.JWTVerifier
 import com.google.gson.Gson
 import freemarker.cache.ClassTemplateLoader
+import io.jsonwebtoken.Claims
 import io.ktor.application.*
 import io.ktor.auth.*
+import io.ktor.auth.jwt.JWTPrincipal
+import io.ktor.auth.jwt.jwt
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.apache.Apache
 import io.ktor.client.features.logging.LogLevel
 import io.ktor.client.features.logging.Logging
 import io.ktor.features.*
@@ -26,15 +33,20 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.resources
 import io.ktor.http.content.static
-import io.ktor.request.path
+import io.ktor.locations.locations
+import io.ktor.request.host
+import io.ktor.request.port
+import io.ktor.request.receiveParameters
 import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.get
+import io.ktor.routing.post
 import io.ktor.routing.routing
 import io.ktor.sessions.*
 import io.ktor.util.generateNonce
 import io.ktor.websocket.webSocket
 import kotlinx.coroutines.channels.consumeEach
+import org.joda.time.DateTime
 import org.koin.ktor.ext.Koin
 import org.koin.ktor.ext.get
 import org.koin.logger.slf4jLogger
@@ -46,6 +58,20 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.main(testing: Boolean = false) {
+    val keycloakAddress = "http://localhost:9000"
+
+    val keycloakProvider = OAuthServerSettings.OAuth2ServerSettings(
+            name = "keycloak",
+            authorizeUrl = "$keycloakAddress/auth/realms/ktor/protocol/openid-connect/auth",
+            accessTokenUrl = "$keycloakAddress/auth/realms/ktor/protocol/openid-connect/token",
+            clientId = "ktorClient",
+            clientSecret = "123456",
+            accessTokenRequiresBasicAuth = false,
+            requestMethod = HttpMethod.Post, // must POST to token endpoint
+            defaultScopes = listOf("roles")
+    )
+    val keycloakOAuth = "keycloakOAuth"
+
     install(FreeMarker) {
         templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
     }
@@ -54,7 +80,7 @@ fun Application.main(testing: Boolean = false) {
 
     install(CallLogging) {
         level = Level.INFO
-        filter { call -> call.request.path().startsWith("/") }
+        // filter { call -> call.request.path().startsWith("/protected") }
     }
 
     install(CORS) {
@@ -87,10 +113,35 @@ fun Application.main(testing: Boolean = false) {
         }
     }
 
+    val publicKey = getPublicKey(javaClass.getResource("/rsakeys/jwt.pub.pem"))
+    val jwtIssuer = "mmit"
+    val jwtAudience = "account"
+    val jwtRealm = jwtIssuer
+
+    val algorithm = Algorithm.RSA256(publicKey, null)
+    fun makeJwtVerifier(issuer: String, audience: String): JWTVerifier = JWT
+            .require(algorithm)
+            .withAudience(audience)
+            .withIssuer(issuer)
+            .build()
+
     install(Authentication) {
         basic("myBasicAuth") {
             realm = "Ktor Server"
-            validate { if (it.name == "test" && it.password == "password") UserIdPrincipal(it.name) else null }
+            validate {
+                if (it.name == "test" && it.password == "password") UserIdPrincipal(it.name) else null
+            }
+        }
+
+        jwt("jwtAuth") {
+            realm = jwtRealm
+            verifier(makeJwtVerifier(jwtIssuer, jwtAudience))
+            validate { credential ->
+                val hasAudience = credential.payload.audience.contains(jwtAudience)
+                val principal = JWTPrincipal(credential.payload)
+
+                if (hasAudience) principal else null
+            }
         }
     }
 
@@ -111,17 +162,18 @@ fun Application.main(testing: Boolean = false) {
     // Weitere Infos: https://ktor.io/servers/features/status-pages.html#exceptions
     install(StatusPages) {
         exception<Throwable> { cause ->
-            val status = RestStatus(RestStatus.Data(
-                    HttpStatusCode.InternalServerError.value,
-                    cause.message, cause.message,
-                    Optional.of(cause),
-                    Optional.absent()
-            ))
-            call.respond(HttpStatusCode.InternalServerError, status.toJson())
+            // val status = RestStatus(RestStatus.Data(
+            //         HttpStatusCode.InternalServerError.value,
+            //         cause.message ?: "no message!", cause.message ?: "no reason!",
+            //         Optional.of(cause),
+            //         Optional.absent()
+            // ))
+            val gson = Gson()
+            call.respond(HttpStatusCode.InternalServerError, gson.toJson(cause)) // status.toJson()
         }
     }
 
-    val client = HttpClient(CIO) {
+    val client = HttpClient(Apache /* CIO */) {
         install(Logging) {
             level = LogLevel.HEADERS
         }
@@ -133,12 +185,21 @@ fun Application.main(testing: Boolean = false) {
         get("/") {
             application.log.debug("Servus vom Server")
             call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
-
-            // val dao = this@routing.get<CatDAO>()
         }
 
         get("/html-freemarker") {
             call.respond(FreeMarkerContent("index.ftl", mapOf("data" to IndexData(listOf(1, 2, 3, 4, 5, 6))), ""))
+        }
+
+        post("/login") {
+            with(call) {
+                val params = receiveParameters()
+                val username = requireNotNull(params["username"])
+                val password = requireNotNull(params["password"])
+
+                val credentials = UserPasswordCredential(username, password)
+                call.respond(HttpStatusCode.OK, generateJWT(username))
+            }
         }
 
         // Static feature. Try to access `/static/ktor_logo.svg`
@@ -182,10 +243,21 @@ fun Application.main(testing: Boolean = false) {
             }
         }
 
-        authenticate("myBasicAuth") {
+        authenticate("myBasicAuth", optional = true) {
             get("/protected/route/basic") {
                 val principal = call.principal<UserIdPrincipal>()!!
                 call.respondText("Hello ${principal.name}")
+            }
+        }
+
+        authenticate( "jwtAuth", optional = false) {
+            get("/protected/route/jwt") {
+                val principal = call.principal<JWTPrincipal>()!!
+                val name = principal.payload.claims
+                        .getValue("preferred_username")
+                        .asString()
+
+                call.respondText("Hello '${name.toString()}'! (JWT)")
             }
         }
 
@@ -203,4 +275,56 @@ fun Application.main(testing: Boolean = false) {
 }
 
 data class IndexData(val items: List<Int>)
+
+private fun <T : Any> ApplicationCall.redirectUrl(t: T, secure: Boolean = true): String {
+    val hostPort = request.host() + request.port().let { port -> if (port == 80) "" else ":$port" }
+    val protocol = when {
+        secure -> "https"
+        else -> "http"
+    }
+    
+    return "$protocol://$hostPort${application.locations.href(t)}"
+}
+
+private fun Application.generateJWT(username: String): String {
+    val privateKey = javaClass.getResource("/rsakeys/jwt.pkcs8.pem").readText().stripPEMMarker()
+    val now = DateTime.now()
+
+    val jwt = createJWT(mutableMapOf(
+            Claims.EXPIRATION to now.plusMinutes(5).toDate(),
+            Claims.ISSUED_AT to now.toDate(),
+            Claims.ISSUER to "mmit",
+            Claims.AUDIENCE to "account",
+            Claims.SUBJECT to "Subject",
+            "typ" to "Bearer",
+            "realm_access" to
+                    mapOf("roles" to listOf<String>(
+                            "offline_access",
+                            "uma_authorization",
+                            "vip"
+                    ))
+            ,
+            "resource_access" to mapOf(
+                    "vue-test-app" to
+                            mapOf("roles" to listOf<String>(
+                                    "device"
+                            ))
+                    ,
+                    "account" to
+                            mapOf("roles" to listOf<String>(
+                                    "manage-account",
+                                    "manage-account-links",
+                                    "view-profile"
+                            ))
+            ),
+            "scope" to "profile email",
+            "email_verified" to true,
+            "preferred_username" to username,
+            "given_name" to username.capitalize(),
+            "family_name" to "Mitterer",
+            "email" to "${username}@mikemitterer.at"
+    ), privateKey)
+
+    return jwt
+}
 

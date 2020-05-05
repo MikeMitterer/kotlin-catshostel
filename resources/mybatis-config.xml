@@ -61,7 +61,7 @@
     </databaseIdProvider>
 
 	<mappers>
-		<mapper class="at.mikemitterer.catshostel.persitance.mapper.CatsMapper"/>
+		<mapper class="at.mikemitterer.catshostel.persistence.mapper.CatsMapper"/>
 
         <!--
         <mapper url="file:///Volumes/Daten/DevLocal/DevJava/WebApp.Base/src/main/java/at/mikemitterer/webapp/persistance/iface/UserMapper.xml"/>

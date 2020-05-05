@@ -1,4 +1,4 @@
-package at.mikemitterer.catshostel.persitance.mapper
+package at.mikemitterer.catshostel.persistence.mapper
 
 import at.mikemitterer.catshostel.model.Cat
 import org.apache.ibatis.annotations.*

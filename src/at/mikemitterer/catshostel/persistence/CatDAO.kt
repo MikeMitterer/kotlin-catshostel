@@ -1,7 +1,7 @@
-package at.mikemitterer.catshostel.persitance
+package at.mikemitterer.catshostel.persistence
 
 import at.mikemitterer.catshostel.model.Cat
-import at.mikemitterer.catshostel.persitance.mapper.CatsMapper
+import at.mikemitterer.catshostel.persistence.mapper.CatsMapper
 import org.apache.ibatis.session.SqlSessionFactory
 
 /**

@@ -4,14 +4,32 @@
 > [MyBatis](https://blog.mybatis.org/)    
 
 ## Auto-Refresh
+> [KTor - AutoReload](https://ktor.io/servers/autoreload.html)
 
 Die ganze Geschichte muss unter **Java > 8** laufen!
 
-Parallel in einem Consol-Fenster
+Parallel in einem Console-Fenster
 
+    # Consol-Windows 1
     gradle -t installDist
     
+    # Consol-Windows 2
+    gradle run
+    
 starten    
+
+## Database
+
+    # cd to DB-Directory
+    cd resources/db
+    
+    # Import schema (Postgres works just fine here)
+    sqlite catshostel.db < ../../docker/db/test/config/docker-entrypoint-initdb.d/postgres-1-schema.sql
+
+Set your working dir to $MODULE_WORKING_DIR$
+
+![WorkingDir](doc/images/working-dir.png)
+
 
 ## Application
 > [Fertige App im GH-Repo](https://github.com/AlexeySoshin/KotlinWebDevelopment/tree/chapter9-10)
