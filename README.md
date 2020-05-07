@@ -1,5 +1,6 @@
-# CatsHostel 
-> [Udemy](https://www.udemy.com/course/web-development-with-kotlin/)  
+# CatsHostel - Ktor-Version 
+> [Udemy](https://www.udemy.com/course/web-development-with-kotlin/) 
+> [Spring Boot Version](https://github.com/MikeMitterer/kotlin-catshostel-sb) 
 > [GH Repo](https://github.com/AlexeySoshin/KotlinWebDevelopment)  
 > [MyBatis](https://blog.mybatis.org/)    
 
