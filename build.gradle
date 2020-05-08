@@ -84,6 +84,7 @@ dependencies {
     implementation "io.jsonwebtoken:jjwt-api:$jwt_version"
     implementation "io.jsonwebtoken:jjwt-impl:$jwt_version"
     implementation "io.jsonwebtoken:jjwt-gson:$jwt_version"
+    implementation "io.jsonwebtoken:jjwt-gson:$jwt_version"
 
     // Sonstiges -------------------------------------------------------------------------------------------------------
     implementation "joda-time:joda-time:$joda_version"

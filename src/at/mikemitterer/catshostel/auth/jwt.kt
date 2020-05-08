@@ -1,8 +1,10 @@
 package at.mikemitterer.catshostel.auth
 
+import io.jsonwebtoken.Claims
 import io.jsonwebtoken.JwtBuilder
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
+import org.joda.time.DateTime
 import java.io.File
 import java.net.URL
 import java.security.KeyFactory
@@ -74,4 +76,49 @@ fun createJWT(claims: Map<String, Any>, privateKey: String): String {
             .signWith(signingKey, signatureAlgorithm)
 
     return builder.compact()
+}
+
+/**
+ * Creates a JWT for specific user (mimics KeyCloak-Structure)
+ */
+fun createJWTFor(username: String): String {
+    val privateKey = "/rsakeys/jwt.pkcs8.pem".asResource().stripPEMMarker()
+    val now = DateTime.now()
+
+    val jwt = createJWT(mutableMapOf(
+            Claims.EXPIRATION to now.plusMinutes(5).toDate(),
+            Claims.ISSUED_AT to now.toDate(),
+            Claims.ISSUER to "mmit",
+            Claims.AUDIENCE to "account",
+            Claims.SUBJECT to "Subject",
+            "typ" to "Bearer",
+            "realm_access" to
+                    mapOf("roles" to listOf<String>(
+                            "offline_access",
+                            "uma_authorization",
+                            "vip"
+                    ))
+            ,
+            "resource_access" to mapOf(
+                    "vue-test-app" to
+                            mapOf("roles" to listOf<String>(
+                                    "device"
+                            ))
+                    ,
+                    "account" to
+                            mapOf("roles" to listOf<String>(
+                                    "manage-account",
+                                    "manage-account-links",
+                                    "view-profile"
+                            ))
+            ),
+            "scope" to "profile email",
+            "email_verified" to true,
+            "preferred_username" to username,
+            "given_name" to username.capitalize(),
+            "family_name" to "Mitterer",
+            "email" to "${username}@mikemitterer.at"
+    ), privateKey)
+
+    return jwt
 }

@@ -1,8 +1,7 @@
 package at.mikemitterer.catshostel
 
-import at.mikemitterer.catshostel.auth.createJWT
+import at.mikemitterer.catshostel.auth.createJWTFor
 import at.mikemitterer.catshostel.auth.getPublicKey
-import at.mikemitterer.catshostel.auth.stripPEMMarker
 import at.mikemitterer.catshostel.di.appModule
 import at.mikemitterer.catshostel.model.Cat
 import at.mikemitterer.catshostel.persistence.CatDAO
@@ -13,7 +12,6 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.JWTVerifier
 import com.google.gson.Gson
 import freemarker.cache.ClassTemplateLoader
-import io.jsonwebtoken.Claims
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.auth.jwt.JWTPrincipal
@@ -47,7 +45,6 @@ import io.ktor.util.generateNonce
 import io.ktor.websocket.webSocket
 import kotlinx.coroutines.channels.consumeEach
 import org.apache.commons.lang3.exception.ExceptionUtils
-import org.joda.time.DateTime
 import org.koin.ktor.ext.Koin
 import org.koin.ktor.ext.get
 import org.koin.logger.slf4jLogger
@@ -214,7 +211,7 @@ fun Application.main(testing: Boolean = false) {
                 val password = requireNotNull(params["password"])
 
                 val credentials = UserPasswordCredential(username, password)
-                call.respond(HttpStatusCode.OK, generateJWT(username))
+                call.respond(HttpStatusCode.OK, createJWTFor(username))
             }
         }
 
@@ -302,45 +299,5 @@ private fun <T : Any> ApplicationCall.redirectUrl(t: T, secure: Boolean = true):
     return "$protocol://$hostPort${application.locations.href(t)}"
 }
 
-private fun Application.generateJWT(username: String): String {
-    val privateKey = javaClass.getResource("/rsakeys/jwt.pkcs8.pem").readText().stripPEMMarker()
-    val now = DateTime.now()
 
-    val jwt = createJWT(mutableMapOf(
-            Claims.EXPIRATION to now.plusMinutes(5).toDate(),
-            Claims.ISSUED_AT to now.toDate(),
-            Claims.ISSUER to "mmit",
-            Claims.AUDIENCE to "account",
-            Claims.SUBJECT to "Subject",
-            "typ" to "Bearer",
-            "realm_access" to
-                    mapOf("roles" to listOf<String>(
-                            "offline_access",
-                            "uma_authorization",
-                            "vip"
-                    ))
-            ,
-            "resource_access" to mapOf(
-                    "vue-test-app" to
-                            mapOf("roles" to listOf<String>(
-                                    "device"
-                            ))
-                    ,
-                    "account" to
-                            mapOf("roles" to listOf<String>(
-                                    "manage-account",
-                                    "manage-account-links",
-                                    "view-profile"
-                            ))
-            ),
-            "scope" to "profile email",
-            "email_verified" to true,
-            "preferred_username" to username,
-            "given_name" to username.capitalize(),
-            "family_name" to "Mitterer",
-            "email" to "${username}@mikemitterer.at"
-    ), privateKey)
-
-    return jwt
-}
 

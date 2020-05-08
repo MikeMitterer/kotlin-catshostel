@@ -21,3 +21,14 @@ fun stripBeginEnd(pem: String): String {
 fun String.stripPEMMarker(): String {
     return stripBeginEnd(this)
 }
+
+/**
+ * Reads resource from Path
+ *
+ * How cool ist this!
+ */
+fun String.asResource(): String {
+    return this.javaClass::class.java.getResource(this).readText()
+}
+
+

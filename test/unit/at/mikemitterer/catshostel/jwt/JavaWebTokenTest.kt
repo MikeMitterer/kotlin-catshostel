@@ -1,7 +1,5 @@
 package at.mikemitterer.catshostel.jwt
 
-
-
 import at.mikemitterer.catshostel.auth.createJWT
 import at.mikemitterer.catshostel.auth.getPrivateKey
 import at.mikemitterer.catshostel.auth.getPublicKey
@@ -25,16 +23,12 @@ import io.ktor.server.testing.withTestApplication
 import kotlinx.coroutines.runBlocking
 import org.amshove.kluent.*
 import org.joda.time.DateTime
-import org.json.simple.JSONObject
+import org.junit.Ignore
 import org.junit.Test
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.net.URL
 import java.security.interfaces.RSAPublicKey
-
-
-
-
 
 /**
  *
@@ -48,9 +42,10 @@ class JavaWebTokenTest {
     private val privateKeyFile = File("./resources/rsakeys/jwt.pkcs8.pem")
 
     @Test
+    @Ignore("KeyCloak must be running")
     fun testKeyCloak() = runBlocking {
         val realm = "demo"
-        val authHost = "http://localhost:9000"
+        val authHost = "http://localhost:9000" // KeyCloak-Server
         val issuer = "${authHost}/auth/realms/${realm}"
 
         val token = "${issuer}/protocol/openid-connect/token"
@@ -142,10 +137,6 @@ class JavaWebTokenTest {
         val nowMillis = System.currentTimeMillis()
         val now = DateTime.now()
 
-        val roles = JSONObject()
-        roles.set("roles", arrayOf("offline_access", "uma_authorization", "vip").toList())
-        logger.info(roles.toString())
-        
         // Reserve Claims:
         //      https://auth0.com/docs/tokens/concepts/jwt-claims#reserved-claims
         //      https://www.iana.org/assignments/jwt/jwt.xhtml#claims
