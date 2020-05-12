@@ -1,5 +1,5 @@
 // Global variable to hold the websocket.
-var socket = null;
+let socket = null;
 
 /**
  * This function is in charge of connecting the client.
@@ -28,7 +28,7 @@ function connect() {
     // Also we will retry a connection after 5 seconds.
     socket.onclose = function(evt) {
         // Try to gather an explanation about why this was closed.
-        var explanation = "";
+        let explanation = "";
         if (evt.reason && evt.reason.length > 0) {
             explanation = "reason: " + evt.reason;
         } else {
@@ -66,12 +66,12 @@ function write(message) {
     // We first create an HTML paragraph and sets its class and contents.
     // Since we are using the textContent property.
     // No HTML is processed and every html-related character is escaped property. So this should be safe.
-    var line = document.createElement("p");
+    let line = document.createElement("p");
     line.className = "message";
     line.textContent = message;
 
     // Then we get the 'messages' container that should be available in the HTML itself already.
-    var messagesDiv = document.getElementById("messages");
+    let messagesDiv = document.getElementById("messages");
     // We adds the text
     messagesDiv.appendChild(line);
     // We scroll the container to where this text is so the use can see it on long conversations if he/she has scrolled up.
@@ -82,10 +82,10 @@ function write(message) {
  * Function in charge of sending the 'commandInput' text to the server via the socket.
  */
 function onSend() {
-    var input = document.getElementById("commandInput");
+    let input = document.getElementById("commandInput");
     // Validates that the input exists
     if (input) {
-        var text = input.value;
+        let text = input.value;
         // Validates that there is a text and that the socket exists
         if (text && socket) {
             // Sends the text
