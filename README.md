@@ -33,8 +33,10 @@ Set your working dir to $MODULE_WORKING_DIR$
     
 ## WebSocket
 > [KTOR.io - WebSockets](https://ktor.io/servers/features/websockets.html)    
-> [Chat-Example](https://ktor.io/samples/app/chat.html)
-> [How to implement a chat with WebSockets](https://ktor.io/quickstart/guides/chat.html)   
+> [Chat-Example](https://ktor.io/samples/app/chat.html)  
+> [How to implement a chat with WebSockets](https://ktor.io/quickstart/guides/chat.html)      
+
+   - [Chat](http://localhost:8080/static/ws.html)
 
 ## FatJar
 > [Shadow-Plugin](https://imperceptiblethoughts.com/shadow/)
